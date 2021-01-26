@@ -1,5 +1,6 @@
 use super::context;
 use super::models;
+use super::extractor;
 
 pub struct BTCClient<TConnector> {
     client: hyper::Client<TConnector>,
@@ -24,7 +25,7 @@ where
     }
 
     pub async fn get_balance(&self) -> Option<models::Balance> {
-        let url = self.auth_context.base_url.clone();
+        let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect("Unable to modify path of url")
             .push(Self::ACCOUNT)
@@ -37,16 +38,22 @@ where
         let body = String::from_utf8(body.to_vec())
             .expect("Body must be valid UTF-8");
         let timestamp = chrono::Utc::now().timestamp().to_string();
-        let message = get_message(method.clone(), &timestamp, path_with_query, body);
+        let path_with_query = &url[url::Position::BeforePath..];
+        let message = get_message(method.clone(), &timestamp, path_with_query, &body);
         let jwt = self.auth_context.sign(message, timestamp);
         let request = hyper::Request::builder()
             .header("Accept", "application/json")
             .header("Authorization", jwt)
             .uri(url.to_string())
             .method(method)
-            .body(Body::empty())
+            .body(hyper::Body::empty())
             .expect("Failed to build request!");
-        let response = self.client.request(request).await;
+        let response = self.client.request(request)
+            .await
+            .unwrap();
+        log::info!("{:#?}", response);
+        let body = response.into_body();
+        extractor::extract_balance(body).await
     }
 }
 

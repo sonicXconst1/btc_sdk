@@ -9,8 +9,8 @@ pub struct AuthContext {
 
 impl AuthContext {
     pub fn new(
-        public_key: &str,
-        private_key: &str,
+        public_key: String,
+        private_key: String,
         base_url: url::Url,
     ) -> Self {
         AuthContext {

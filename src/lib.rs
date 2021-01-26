@@ -4,6 +4,7 @@ pub mod client;
 pub mod context;
 pub mod models;
 pub mod endpoint;
+pub mod extractor;
 
 pub fn authentificate(
     public_key: &str,
