@@ -74,6 +74,17 @@ pub struct Price {
     size: String,
 }
 
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct OrderbookExactSymbol {
+    ask: Prices,
+    bid: Prices,
+    timestamp: String,
+    #[serde(rename="askAveragePrice")]
+    ask_average_price: String,
+    #[serde(rename="bidAveragePrice")]
+    bid_average_price: String,
+}
+
 pub mod typed {
     use std::str::FromStr;
 

@@ -94,6 +94,36 @@ where
         extractor::extract_orderbook(body).await
     }
 
+    pub async fn get_symbol_from_orderbook(
+        &self,
+        symbol: coin::Symbol,
+        limit: Option<u64>,
+        volume: Option<f64>
+    ) -> Option<models::OrderbookExactSymbol> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::PUBLIC)
+            .push(Self::ORDERBOOK)
+            .push(&symbol.to_string());
+        if let Some(volume) = volume {
+            url.query_pairs_mut()
+                .append_pair("volume", &format!("{}", volume));
+        }
+        else if let Some(limit) = limit {
+            url.query_pairs_mut()
+                .append_pair("limit", &format!("{}", limit));
+        }
+        let (header, body) = process(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::GET,
+            hyper::Body::empty()).await;
+        log::info!("Header: {:#?}", header);
+        extractor::extract_orderbook_exact_symbol(body).await
+    }
+
     pub async fn get_balance(&self) -> Option<models::Balance> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
