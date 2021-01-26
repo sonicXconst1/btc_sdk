@@ -12,6 +12,10 @@ pub async fn extract_symbols(body: hyper::Body) -> Option<models::Symbols> {
     read_body(body).await
 }
 
+pub async fn extract_orderbook(body: hyper::Body) -> Option<models::OrderBook> {
+    read_body(body).await
+}
+
 async fn read_body<TResult>(body: hyper::Body) -> Option<TResult> 
 where TResult: serde::de::DeserializeOwned
 {

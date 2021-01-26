@@ -29,6 +29,7 @@ impl From<&str> for Coin {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Symbol {
     pub left: Coin,
     pub right: Coin,

@@ -56,6 +56,24 @@ pub struct Symbol {
     fee_currency: String,
 }
 
+pub type OrderBook = std::collections::HashMap<String, OrderBookPage>;
+
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct OrderBookPage {
+    symbol: String,
+    ask: Prices,
+    bid: Prices,
+    timestamp: String,
+}
+
+pub type Prices = Vec<Price>;
+
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct Price {
+    price: String,
+    size: String,
+}
+
 pub mod typed {
     use std::str::FromStr;
 
