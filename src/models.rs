@@ -21,7 +21,7 @@ pub struct Order {
     pub order_type: String,
     #[serde(rename="timeInForce")]
     pub time_in_force: String,
-    quantity: String,
+    pub quantity: String,
     pub price: String,
     #[serde(rename="cumQuantity")]
     pub cim_quantity: String,
@@ -33,6 +33,28 @@ pub struct Order {
     pub post_only: bool,
     #[serde(rename="expireTime")]
     pub expire_time: Option<String>,
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct CreateOrder {
+    #[serde(rename="clientOrderId")]
+    pub client_order_id: Option<String>,
+    pub symbol: String,
+    pub side: String,
+    #[serde(rename="type")]
+    pub order_type: Option<String>, // default: limit
+    #[serde(rename="timeInForce")]
+    pub time_in_force: Option<String>, // default GTC
+    pub quantity: String,
+    pub price: Option<String>, // only for limit type
+    #[serde(rename="stopPrice")]
+    pub stop_price: String, // only for stop-limit and stop-market type
+    #[serde(rename="expireTime")]
+    pub expire_time: Option<String>, // only for time in force GTD
+    #[serde(rename="strictValidate")]
+    pub strict_validate: String,
+    #[serde(rename="postOnly")]
+    pub post_only: bool,
 }
 
 pub type Symbols = Vec<Symbol>;
@@ -85,14 +107,6 @@ pub struct OrderbookExactSymbol {
     pub bid_average_price: String,
 }
 
-#[derive(serde::Serialize, Clone, Debug)]
-pub struct CreateOrder {
-    pub symbol: String,
-    pub side: String,
-    pub quantity: String,
-    pub price: String,
-}
-
 pub mod typed {
     use std::str::FromStr;
     use super::super::base;
@@ -142,12 +156,7 @@ pub mod typed {
             let side = self.side.to_string().to_owned();
             let quantity = format!("{}", self.quantity);
             let price = format!("{}", self.price);
-            super::CreateOrder {
-                symbol,
-                side,
-                quantity,
-                price,
-            }
+            unimplemented!("Different type of typed orders should be implemented!")
         }
     }
 }

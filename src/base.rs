@@ -11,3 +11,21 @@ impl Side {
         }
     }
 }
+
+pub enum Type {
+    Limit,
+    Market,
+    StopLimit,
+    StopMarket,
+}
+
+impl Type {
+    pub fn to_string(self) -> &'static str {
+        match self {
+            Type::Limit => "limit",
+            Type::Market => "market",
+            Type::StopLimit => "stopLimit",
+            Type::StopMarket => "stopMarket",
+        }
+    }
+}
