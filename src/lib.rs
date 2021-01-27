@@ -6,3 +6,5 @@ pub mod extractor;
 pub mod coin;
 pub mod time_in_force;
 pub mod public_client;
+pub mod order;
+pub mod base;

@@ -1,3 +1,4 @@
+use super::order;
 use super::coin;
 use super::context;
 use super::extractor;
@@ -64,6 +65,38 @@ where
         .await;
         log::info!("Header: {:#?}", header);
         extractor::extract_orders(body).await
+    }
+
+    pub async fn get_order_by_id(
+        &self,
+        id: &str,
+        wait: Option<u64>,
+    ) -> Option<models::Order> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::ORDER)
+            .push(id);
+        if let Some(wait) = wait {
+            url.query_pairs_mut()
+                .append_pair("wait", &format!("{}", wait));
+        }
+        let (header, body) = process(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::GET,
+            hyper::Body::empty(),
+        )
+        .await;
+        log::info!("Header: {:#?}", header);
+        extractor::extract_order(body).await
+    }
+
+    pub async fn craete_order(
+        &self,
+        order: order::CreateOrder,
+    ) -> Option<models::Order> {
     }
 }
 

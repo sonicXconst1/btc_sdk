@@ -11,82 +11,93 @@ pub type Orders = Vec<Order>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Order {
-    id: u64,
+    pub id: u64,
     #[serde(rename="clientOrderId")]
-    client_order_id: String,
-    symbol: String,
-    side: String,
-    status: String,
+    pub client_order_id: String,
+    pub symbol: String,
+    pub side: String,
+    pub status: String,
     #[serde(rename="type")]
-    order_type: String,
+    pub order_type: String,
     #[serde(rename="timeInForce")]
-    time_in_force: String,
+    pub time_in_force: String,
     quantity: String,
-    price: String,
+    pub price: String,
     #[serde(rename="cumQuantity")]
-    cim_quantity: String,
+    pub cim_quantity: String,
     #[serde(rename="createdAt")]
-    created_at: String,
+    pub created_at: String,
     #[serde(rename="udpatedAt")]
-    updated_at: String,
+    pub updated_at: String,
     #[serde(rename="postOnly")]
-    post_only: bool,
+    pub post_only: bool,
     #[serde(rename="expireTime")]
-    expire_time: Option<String>,
+    pub expire_time: Option<String>,
 }
 
 pub type Symbols = Vec<Symbol>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Symbol {
-    id: String,
+    pub id: String,
     #[serde(rename="baseCurrency")]
-    base_currency: String,
+    pub base_currency: String,
     #[serde(rename="quoteCurrency")]
-    quote_currency: String,
+    pub quote_currency: String,
     #[serde(rename="quantityIncrement")]
-    quantity_increment: String,
+    pub quantity_increment: String,
     #[serde(rename="tickSize")]
-    tick_size: String,
+    pub tick_size: String,
     #[serde(rename="takeLiquidityRate")]
-    take_liquidity_rate: String,
+    pub take_liquidity_rate: String,
     #[serde(rename="provideLiquidityRate")]
-    provide_liquidity_rate: String,
+    pub provide_liquidity_rate: String,
     #[serde(rename="feeCurrency")]
-    fee_currency: String,
+    pub fee_currency: String,
 }
 
 pub type OrderBook = std::collections::HashMap<String, OrderBookPage>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct OrderBookPage {
-    symbol: String,
-    ask: Prices,
-    bid: Prices,
-    timestamp: String,
+    pub symbol: String,
+    pub ask: Prices,
+    pub bid: Prices,
+    pub timestamp: String,
 }
 
 pub type Prices = Vec<Price>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct Price {
-    price: String,
-    size: String,
+    pub price: String,
+    pub size: String,
 }
 
 #[derive(serde::Deserialize, Clone, Debug)]
 pub struct OrderbookExactSymbol {
-    ask: Prices,
-    bid: Prices,
-    timestamp: String,
+    pub ask: Prices,
+    pub bid: Prices,
+    pub timestamp: String,
     #[serde(rename="askAveragePrice")]
-    ask_average_price: String,
+    pub ask_average_price: String,
     #[serde(rename="bidAveragePrice")]
-    bid_average_price: String,
+    pub bid_average_price: String,
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct CreateOrder {
+    pub symbol: String,
+    pub side: String,
+    pub quantity: String,
+    pub price: String,
 }
 
 pub mod typed {
     use std::str::FromStr;
+    use super::super::base;
+    use super::super::coin;
+
 
     pub struct Currency {
         pub currency: String,
@@ -100,6 +111,42 @@ pub mod typed {
                 currency: from.currency,
                 available: f64::from_str(&from.available).unwrap(),
                 reserved: f64::from_str(&from.reserved).unwrap(),
+            }
+        }
+    }
+
+    pub struct CreateOrder {
+        symbol: coin::Symbol,
+        side: base::Side,
+        quantity: f64,
+        price: f64,
+    }
+
+    impl CreateOrder {
+        pub fn new(
+            symbol: coin::Symbol,
+            side: base::Side,
+            quantity: f64,
+            price: f64
+        ) -> CreateOrder {
+            CreateOrder {
+                symbol,
+                side,
+                quantity,
+                price,
+            }
+        }
+
+        pub fn to_model(self) -> super::CreateOrder {
+            let symbol = self.symbol.to_string();
+            let side = self.side.to_string().to_owned();
+            let quantity = format!("{}", self.quantity);
+            let price = format!("{}", self.price);
+            super::CreateOrder {
+                symbol,
+                side,
+                quantity,
+                price,
             }
         }
     }

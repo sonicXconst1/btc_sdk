@@ -8,6 +8,10 @@ pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
     read_body(body).await
 }
 
+pub async fn extract_order(body: hyper::Body) -> Option<models::Order> {
+    read_body(body).await
+}
+
 pub async fn extract_symbols(body: hyper::Body) -> Option<models::Symbols> {
     read_body(body).await
 }
