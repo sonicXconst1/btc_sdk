@@ -16,6 +16,7 @@ where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
     const ACCOUNT: &'static str = "account";
+    const TRADING: &'static str = "trading";
     const BALANCE: &'static str = "balance";
     const ORDER: &'static str = "order";
 
@@ -29,7 +30,7 @@ where
         }
     }
 
-    pub async fn get_balance(&self) -> Option<models::Balance> {
+    pub async fn get_account_balance(&self) -> Option<models::Balance> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -41,6 +42,21 @@ where
             url,
             hyper::Method::GET).await;
         log::info!("Get Balance Header Header: {:#?}", header);
+        extractor::extract_balance(body).await
+    }
+
+    pub async fn get_trading_balance(&self) -> Option<models::Balance> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::TRADING)
+            .push(Self::BALANCE);
+        let (header, body) = process_with_empty_body(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::GET).await;
+        log::info!("Get Trading Balance Header: {:#?}", header);
         extractor::extract_balance(body).await
     }
 
