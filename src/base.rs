@@ -6,8 +6,8 @@ pub enum Side {
 impl Side {
     pub fn to_string(self) -> &'static str {
         match self {
-            Sell => "sell",
-            Buy => "buy",
+            Side::Sell => "sell",
+            Side::Buy => "buy",
         }
     }
 }

@@ -1,4 +1,3 @@
-use super::order;
 use super::coin;
 use super::context;
 use super::extractor;
@@ -36,14 +35,11 @@ where
             .expect(BAD_URL)
             .push(Self::ACCOUNT)
             .push(Self::BALANCE);
-        let (header, body) = process(
+        let (header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET,
-            hyper::Body::empty(),
-        )
-        .await;
+            hyper::Method::GET).await;
         log::info!("Get Balance Header Header: {:#?}", header);
         extractor::extract_balance(body).await
     }
@@ -55,14 +51,11 @@ where
             url.query_pairs_mut()
                 .append_pair("symbol", &coins.to_string());
         }
-        let (header, body) = process(
+        let (header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET,
-            hyper::Body::empty(),
-        )
-        .await;
+            hyper::Method::GET).await;
         log::info!("Get All Orders Header: {:#?}", header);
         extractor::extract_orders(body).await
     }
@@ -81,14 +74,11 @@ where
             url.query_pairs_mut()
                 .append_pair("wait", &format!("{}", wait));
         }
-        let (header, body) = process(
+        let (header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET,
-            hyper::Body::empty(),
-        )
-        .await;
+            hyper::Method::GET).await;
         log::info!("Get Order By Id Header: {:#?}", header);
         extractor::extract_order(body).await
     }
@@ -103,9 +93,6 @@ where
             .push(Self::ORDER);
         let body = serde_json::to_vec(&order.to_model())
             .expect("Failed to serialize CreateOrder");
-        let body = hyper::body::Body::from(body);
-        unimplemented!(
-            "process method may provide invalid header for non-get requests.");
         let (header, reponse_body) = process(
             &self.client,
             &self.auth_context,
@@ -128,16 +115,31 @@ where
             url.query_pairs_mut()
                 .append_pair("symbol", &symbol.to_string());
         }
-        unimplemented!(
-            "process method may provide invalid header for non-get requests.");
-        let (header, body) = process(
+        let (header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::DELETE,
-            hyper::Body::empty()).await;
+            hyper::Method::DELETE).await;
         log::info!("Cancell All Orders Header: {:#?}", header);
         extractor::extract_orders(body).await
+    }
+    
+    pub async fn cancel_order_by_id(
+        &self,
+        id: &str
+    ) -> Option<models::Order> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::ORDER)
+            .push(id);
+        let (header, body) = process_with_empty_body(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::DELETE).await;
+        log::info!("Cancell Order By Id Header: {:#?}", header);
+        extractor::extract_order(body).await
     }
 }
 
@@ -150,16 +152,16 @@ fn get_message(
     format!("{}{}{}{}", method, timestamp, path_with_query, body)
 }
 
-async fn process<TConnector>(
+async fn process_with_empty_body<TConnector>(
     client: &hyper::Client<TConnector>,
     auth_context: &context::AuthContext,
     url: url::Url,
     method: hyper::Method,
-    body: hyper::Body,
 ) -> (http::response::Parts, hyper::Body)
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
+    let body = hyper::Body::empty();
     let body = hyper::body::to_bytes(body).await.expect(BAD_BODY);
     let body = String::from_utf8(body.to_vec()).expect("Body must be valid UTF-8");
     let timestamp = chrono::Utc::now().timestamp().to_string();
@@ -172,6 +174,36 @@ where
         .uri(url.to_string())
         .method(method)
         .body(hyper::Body::empty())
+        .expect("Failed to build request!");
+    client.request(request).await.unwrap().into_parts()
+}
+
+async fn process<TConnector>(
+    client: &hyper::Client<TConnector>,
+    auth_context: &context::AuthContext,
+    url: url::Url,
+    method: hyper::Method,
+    body_bytes: Vec<u8>,
+) -> (http::response::Parts, hyper::Body)
+where
+    TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
+{
+    let body = String::from_utf8(body_bytes)
+        .expect("Body must be valid UTF-8");
+    let timestamp = chrono::Utc::now().timestamp().to_string();
+    let path_with_query = &url[url::Position::BeforePath..];
+    let message = get_message(
+        method.clone(),
+        &timestamp,
+        path_with_query,
+        &body);
+    let jwt = auth_context.sign(message, timestamp);
+    let request = hyper::Request::builder()
+        .header("Content-Type", "application/json")
+        .header("Authorization", jwt)
+        .uri(url.to_string())
+        .method(method)
+        .body(hyper::Body::from(body))
         .expect("Failed to build request!");
     client.request(request).await.unwrap().into_parts()
 }
