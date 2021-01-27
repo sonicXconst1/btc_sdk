@@ -44,7 +44,7 @@ where
             hyper::Body::empty(),
         )
         .await;
-        log::info!("Header: {:#?}", header);
+        log::info!("Get Balance Header Header: {:#?}", header);
         extractor::extract_balance(body).await
     }
 
@@ -63,7 +63,7 @@ where
             hyper::Body::empty(),
         )
         .await;
-        log::info!("Header: {:#?}", header);
+        log::info!("Get All Orders Header: {:#?}", header);
         extractor::extract_orders(body).await
     }
 
@@ -89,14 +89,55 @@ where
             hyper::Body::empty(),
         )
         .await;
-        log::info!("Header: {:#?}", header);
+        log::info!("Get Order By Id Header: {:#?}", header);
         extractor::extract_order(body).await
     }
 
     pub async fn craete_order(
         &self,
-        order: order::CreateOrder,
+        order: models::typed::CreateOrder,
     ) -> Option<models::Order> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::ORDER);
+        let body = serde_json::to_vec(&order.to_model())
+            .expect("Failed to serialize CreateOrder");
+        let body = hyper::body::Body::from(body);
+        unimplemented!(
+            "process method may provide invalid header for non-get requests.");
+        let (header, reponse_body) = process(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::POST,
+            body).await;
+        log::info!("Create Order Response Header: {:#?}", header);
+        extractor::extract_order(reponse_body).await
+    }
+
+    pub async fn cancel_all_orders(
+        &self,
+        symbol: Option<coin::Symbol>,
+    ) -> Option<models::Orders> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::ORDER);
+        if let Some(symbol) = symbol {
+            url.query_pairs_mut()
+                .append_pair("symbol", &symbol.to_string());
+        }
+        unimplemented!(
+            "process method may provide invalid header for non-get requests.");
+        let (header, body) = process(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::DELETE,
+            hyper::Body::empty()).await;
+        log::info!("Cancell All Orders Header: {:#?}", header);
+        extractor::extract_orders(body).await
     }
 }
 
