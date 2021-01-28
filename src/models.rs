@@ -37,24 +37,39 @@ pub struct Order {
 
 #[derive(serde::Serialize, Clone, Debug)]
 pub struct CreateOrder {
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename="clientOrderId")]
     pub client_order_id: Option<String>,
     pub symbol: String,
     pub side: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename="type")]
     pub order_type: Option<String>, // default: limit
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename="timeInForce")]
     pub time_in_force: Option<String>, // default GTC
     pub quantity: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub price: Option<String>, // only for limit type
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename="stopPrice")]
-    pub stop_price: String, // only for stop-limit and stop-market type
+    pub stop_price: Option<String>, // only for stop-limit and stop-market type
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[serde(rename="expireTime")]
     pub expire_time: Option<String>, // only for time in force GTD
     #[serde(rename="strictValidate")]
     pub strict_validate: String,
     #[serde(rename="postOnly")]
     pub post_only: bool,
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct CreateMarketOrder {
+    pub symbol: String,
+    pub side: String,
+    pub quantity: String,
+    #[serde(rename="type")]
+    pub order_type: String,
 }
 
 pub type Symbols = Vec<Symbol>;
@@ -129,34 +144,36 @@ pub mod typed {
         }
     }
 
-    pub struct CreateOrder {
+    pub struct CreateMarketOrder {
         symbol: coin::Symbol,
         side: base::Side,
         quantity: f64,
-        price: f64,
     }
 
-    impl CreateOrder {
+    impl CreateMarketOrder {
         pub fn new(
             symbol: coin::Symbol,
             side: base::Side,
             quantity: f64,
-            price: f64
-        ) -> CreateOrder {
-            CreateOrder {
+        ) -> CreateMarketOrder {
+            CreateMarketOrder {
                 symbol,
                 side,
                 quantity,
-                price,
             }
         }
 
-        pub fn to_model(self) -> super::CreateOrder {
+        pub fn to_model(self) -> super::CreateMarketOrder {
             let symbol = self.symbol.to_string();
             let side = self.side.to_string().to_owned();
             let quantity = format!("{}", self.quantity);
-            let price = format!("{}", self.price);
-            unimplemented!("Different type of typed orders should be implemented!")
+            let order_type = base::Type::Market.to_string().to_owned();
+            super::CreateMarketOrder {
+                symbol,
+                side,
+                quantity,
+                order_type,
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 use super::models;
+use super::error;
 
 pub async fn extract_balance(body: hyper::Body) -> Option<models::Balance> {
     read_body(body).await
@@ -21,8 +22,12 @@ pub async fn extract_orderbook(body: hyper::Body) -> Option<models::OrderBook> {
 }
 
 pub async fn extract_orderbook_exact_symbol(
-    body: hyper::Body
+    body: hyper::Body,
 ) -> Option<models::OrderbookExactSymbol> {
+    read_body(body).await
+}
+
+pub async fn extract_error(body: hyper::Body) -> Option<error::Error> {
     read_body(body).await
 }
 
@@ -35,6 +40,7 @@ where TResult: serde::de::DeserializeOwned
         Ok(result) => Some(result),
         Err(error) => {
             log::error!("Error on reading the body: {:#?}", error);
+            log::error!("Json: {:#?}", String::from_utf8(bytes.to_vec()));
             None
         }
     }
