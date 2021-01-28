@@ -130,6 +130,14 @@ pub struct OrderbookExactSymbol {
     pub bid_average_price: String,
 }
 
+#[derive(serde::Deserialize, Clone, Debug)]
+pub struct TradingCommission {
+    #[serde(rename="takeLiquidityRate")]
+    pub take_liquidity_rate: String,
+    #[serde(rename="provideLiquidityRate")]
+    pub provide_liquidity_rate: String,
+}
+
 pub mod typed {
     use std::str::FromStr;
     use super::super::base;
