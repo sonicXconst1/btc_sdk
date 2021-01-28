@@ -99,7 +99,7 @@ where
         extractor::extract_order(body).await
     }
 
-    pub async fn create_order(
+    pub async fn create_market_order(
         &self,
         order: models::typed::CreateMarketOrder,
     ) -> Option<models::Order> {
@@ -109,6 +109,33 @@ where
             .push(Self::ORDER);
         let body = serde_json::to_vec(&order.to_model())
             .expect("Failed to serialize CreateMarketOrder");
+        log::info!("JSON: {:#?}", String::from_utf8(body.clone()));
+        let (header, response_body) = process(
+            &self.client,
+            &self.auth_context,
+            url,
+            hyper::Method::POST,
+            body).await;
+        if header.status == hyper::StatusCode::OK{
+            log::info!("Create Order Response Header: {:#?}", header);
+            extractor::extract_order(response_body).await
+        } else {
+            let error = extractor::extract_error(response_body).await;
+            log::error!("Error on creating order: {:#?}", error);
+            None
+        }
+    }
+
+    pub async fn create_limit_order(
+        &self,
+        order: models::typed::CreateLimitOrder,
+    ) -> Option<models::Order> {
+        let mut url = self.auth_context.base_url.clone();
+        url.path_segments_mut()
+            .expect(BAD_URL)
+            .push(Self::ORDER);
+        let body = serde_json::to_vec(&order.to_model())
+            .expect("Failed to serialize CreateLimitOrder");
         log::info!("JSON: {:#?}", String::from_utf8(body.clone()));
         let (header, response_body) = process(
             &self.client,

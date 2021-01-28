@@ -72,6 +72,14 @@ pub struct CreateMarketOrder {
     pub order_type: String,
 }
 
+#[derive(serde::Serialize, Clone, Debug)]
+pub struct CreateLimitOrder {
+    pub symbol: String,
+    pub side: String,
+    pub quantity: String,
+    pub price: String,
+}
+
 pub type Symbols = Vec<Symbol>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
@@ -173,6 +181,38 @@ pub mod typed {
                 side,
                 quantity,
                 order_type,
+            }
+        }
+    }
+
+    pub struct CreateLimitOrder {
+        symbol: coin::Symbol,
+        side: base::Side,
+        quantity: f64,
+        price: f64,
+    }
+
+    impl CreateLimitOrder {
+        pub fn new(
+            symbol: coin::Symbol,
+            side: base::Side,
+            quantity: f64,
+            price: f64,
+        ) -> CreateLimitOrder {
+            CreateLimitOrder {
+                symbol,
+                side,
+                quantity,
+                price,
+            }
+        }
+
+        pub fn to_model(self) -> super::CreateLimitOrder {
+            super::CreateLimitOrder {
+                symbol: self.symbol.to_string(),
+                side: self.side.to_string().to_owned(),
+                quantity: format!("{}", self.quantity),
+                price: format!("{}", self.price),
             }
         }
     }
