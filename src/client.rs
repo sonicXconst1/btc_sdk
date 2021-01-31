@@ -6,12 +6,12 @@ use super::models;
 pub const BAD_URL: &'static str = "Unable to modify path of url";
 pub const BAD_BODY: &'static str = "Bad body. Failed to get bytes.";
 
-pub struct BTCClient<'a, TConnector> {
-    client: &'a hyper::Client<TConnector>,
-    auth_context: &'a context::AuthContext,
+pub struct BTCClient<TConnector> {
+    client: std::sync::Arc<hyper::Client<TConnector>>,
+    auth_context: std::sync::Arc<context::AuthContext>,
 }
 
-impl<'a, TConnector> BTCClient<'a, TConnector>
+impl<TConnector> BTCClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
@@ -22,9 +22,9 @@ where
     const ORDER: &'static str = "order";
 
     pub fn new(
-        client: &'a hyper::Client<TConnector>,
-        auth_context: &'a context::AuthContext
-    ) -> BTCClient<'a, TConnector> {
+        client: std::sync::Arc<hyper::Client<TConnector>>,
+        auth_context: std::sync::Arc<context::AuthContext>
+    ) -> BTCClient<TConnector> {
         BTCClient {
             client,
             auth_context,

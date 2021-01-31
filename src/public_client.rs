@@ -3,12 +3,12 @@ use super::coin;
 use super::extractor;
 use super::models;
 
-pub struct PublicClient<'a, TConnector> {
-    client: &'a hyper::Client<TConnector>,
+pub struct PublicClient<TConnector> {
+    client: std::sync::Arc<hyper::Client<TConnector>>,
     base_url: url::Url,
 }
 
-impl<'a, TConnector> PublicClient<'a, TConnector>
+impl<TConnector> PublicClient<TConnector>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
@@ -17,9 +17,9 @@ where
     const ORDERBOOK: &'static str = "orderbook";
 
     pub fn new(
-        client: &'a hyper::Client<TConnector>,
+        client: std::sync::Arc<hyper::Client<TConnector>>,
         base_url: url::Url,
-    ) -> PublicClient<'a, TConnector> {
+    ) -> PublicClient<TConnector> {
         PublicClient { client, base_url }
     }
 
