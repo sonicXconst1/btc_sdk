@@ -15,12 +15,31 @@ where
     const PUBLIC: &'static str = "public";
     const SYMBOL: &'static str = "symbol";
     const ORDERBOOK: &'static str = "orderbook";
+    const CURRENCY: &'static str = "currency";
 
     pub fn new(
         client: std::sync::Arc<hyper::Client<TConnector>>,
         base_url: url::Url,
     ) -> PublicClient<TConnector> {
         PublicClient { client, base_url }
+    }
+
+    pub async fn get_all_currencies(&self) -> Option<models::Balance> {
+        let mut url = self.base_url.clone();
+        url.path_segments_mut()
+            .expect(client::BAD_URL)
+            .push(Self::PUBLIC)
+            .push(Self::CURRENCY);
+        let request = hyper::Request::builder()
+            .header("Accept", "application/json")
+            .uri(url.to_string())
+            .method(http::Method::GET)
+            .body(hyper::Body::empty())
+            .expect("Failed to build request!");
+        let response = self.client.request(request).await.unwrap();
+        log::info!("Get all symbols: {:#?}", response);
+        let body = response.into_body();
+        extractor::extract_balance(body).await
     }
 
     pub async fn get_all_symbols(&self) -> Option<models::Symbols> {

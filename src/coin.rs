@@ -1,4 +1,4 @@
-#[derive(serde::Deserialize, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(untagged)]
 pub enum Coin {
     TON,
@@ -27,6 +27,10 @@ impl From<&str> for Coin {
             other => Coin::Unknown(other.into()),
         }
     }
+}
+
+pub enum SymbolTest {
+    TONBTC,
 }
 
 #[derive(Clone, Debug)]
