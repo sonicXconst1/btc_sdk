@@ -1,10 +1,28 @@
-pub type Balance = Vec<Currency>;
+pub type Balance = Vec<AccountCurrency>;
 
 #[derive(serde::Deserialize, Clone, Debug)]
-pub struct Currency {
+pub struct AccountCurrency {
     pub currency: String,
     pub available: String,
     pub reserved: String,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicCurrency {
+    pub id: String,
+    pub full_name: String,
+    pub payin_enabled: bool,
+    pub payin_paymeny_id: bool,
+    pub payin_confirmations: u32,
+    pub payout_enabled: bool,
+    pub payout_is_payment_id: bool,
+    pub transfer_enabled: bool,
+    pub delisted: bool,
+    pub payout_fee: String,
+    pub payout_minimal_amount: String,
+    pub precision_payout: u32,
+    pub precision_transfer: u32
 }
 
 pub type Orders = Vec<Order>;
@@ -150,8 +168,8 @@ pub mod typed {
         pub reserved: f64,
     }
 
-    impl From<super::Currency> for Currency {
-        fn from(from: super::Currency) -> Currency {
+    impl From<super::AccountCurrency> for Currency {
+        fn from(from: super::AccountCurrency) -> Currency {
             Currency {
                 currency: from.currency,
                 available: f64::from_str(&from.available).unwrap(),

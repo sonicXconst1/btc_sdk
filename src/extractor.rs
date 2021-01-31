@@ -5,6 +5,10 @@ pub async fn extract_balance(body: hyper::Body) -> Option<models::Balance> {
     read_body(body).await
 }
 
+pub async fn extract_currencies(body: hyper::Body) -> Option<Vec<models::PublicCurrency>> {
+    read_body(body).await
+}
+
 pub async fn extract_orders(body: hyper::Body) -> Option<models::Orders> {
     read_body(body).await
 }

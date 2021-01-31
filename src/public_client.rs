@@ -24,7 +24,7 @@ where
         PublicClient { client, base_url }
     }
 
-    pub async fn get_all_currencies(&self) -> Option<models::Balance> {
+    pub async fn get_all_currencies(&self) -> Option<Vec<models::PublicCurrency>> {
         let mut url = self.base_url.clone();
         url.path_segments_mut()
             .expect(client::BAD_URL)
@@ -39,7 +39,7 @@ where
         let response = self.client.request(request).await.unwrap();
         log::info!("Get all symbols: {:#?}", response);
         let body = response.into_body();
-        extractor::extract_balance(body).await
+        extractor::extract_currencies(body).await
     }
 
     pub async fn get_all_symbols(&self) -> Option<models::Symbols> {
