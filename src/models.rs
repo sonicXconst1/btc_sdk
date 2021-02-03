@@ -13,14 +13,16 @@ pub struct PublicCurrency {
     pub id: String,
     pub full_name: String,
     pub payin_enabled: bool,
-    pub payin_paymeny_id: bool,
+    pub payin_payment_id: bool,
     pub payin_confirmations: u32,
     pub payout_enabled: bool,
     pub payout_is_payment_id: bool,
     pub transfer_enabled: bool,
     pub delisted: bool,
-    pub payout_fee: String,
-    pub payout_minimal_amount: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payout_fee: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub payout_minimal_amount: Option<String>,
     pub precision_payout: u32,
     pub precision_transfer: u32
 }

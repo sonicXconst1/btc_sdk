@@ -12,7 +12,7 @@ impl Coin {
         match self {
             Coin::TON => "TON".into(),
             Coin::BTC => "BTC".into(),
-            Coin::USDT => "USDT20".into(),
+            Coin::USDT => "USD".into(),
             Coin::Unknown(name) => name,
         }
     }
@@ -23,14 +23,10 @@ impl From<&str> for Coin {
         match coin {
             "TON" => Coin::TON,
             "BTC" => Coin::BTC,
-            "USDT20" => Coin::USDT,
+            "USD" => Coin::USDT,
             other => Coin::Unknown(other.into()),
         }
     }
-}
-
-pub enum SymbolTest {
-    TONBTC,
 }
 
 #[derive(Clone, Debug)]
