@@ -245,24 +245,28 @@ pub mod typed {
         }
     }
 
-    pub struct Bids {
+    pub struct OrderBookPage {
         pub symbol: coin::Symbol,
         pub prices: Vec<Price>,
     }
 
-    impl Bids {
+    impl OrderBookPage {
         pub fn new(
             symbol: crate::coin::Symbol,
+            side: crate::base::Side,
             orderbook: &std::collections::HashMap<String, super::OrderBookPage>
-        ) -> Option<Bids> {
+        ) -> Option<OrderBookPage> {
             let symbol_as_string = symbol.clone().to_string();
             match orderbook.get(&symbol_as_string) {
                 Some(page) => {
-                    let prices = page.bid
-                        .iter()
-                        .map(|bid| Price::from(bid))
+                    let price_iterator = match side {
+                        crate::base::Side::Buy => page.ask.iter(),
+                        crate::base::Side::Sell => page.bid.iter(),
+                    };
+                    let prices = price_iterator
+                        .map(|price| Price::from(price))
                         .collect();
-                    Some(Bids {
+                    Some(OrderBookPage {
                         symbol,
                         prices,
                     })
