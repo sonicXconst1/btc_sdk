@@ -244,4 +244,45 @@ pub mod typed {
             }
         }
     }
+
+    pub struct Bids {
+        pub symbol: coin::Symbol,
+        pub prices: Vec<Price>,
+    }
+
+    impl Bids {
+        pub fn new(
+            symbol: crate::coin::Symbol,
+            orderbook: &std::collections::HashMap<String, super::OrderBookPage>
+        ) -> Option<Bids> {
+            let symbol_as_string = symbol.clone().to_string();
+            match orderbook.get(&symbol_as_string) {
+                Some(page) => {
+                    let prices = page.bid
+                        .iter()
+                        .map(|bid| Price::from(bid))
+                        .collect();
+                    Some(Bids {
+                        symbol,
+                        prices,
+                    })
+                },
+                None => None
+            }
+        }
+    }
+
+    pub struct Price {
+        pub amount: f64,
+        pub rate: f64,
+    }
+
+    impl From<&super::Price> for Price {
+        fn from(price: &super::Price) -> Price {
+            Price {
+                amount: f64::from_str(&price.size).unwrap(),
+                rate: f64::from_str(&price.price).unwrap(),
+            }
+        }
+    }
 }
