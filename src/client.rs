@@ -37,12 +37,11 @@ where
             .expect(BAD_URL)
             .push(Self::ACCOUNT)
             .push(Self::BALANCE);
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::GET).await;
-        log::info!("Get Balance Header Header: {:#?}", header);
         extractor::extract_balance(body).await
     }
 
@@ -52,12 +51,11 @@ where
             .expect(BAD_URL)
             .push(Self::TRADING)
             .push(Self::BALANCE);
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::GET).await;
-        log::info!("Get Trading Balance Header: {:#?}", header);
         extractor::extract_balance(body).await
     }
 
@@ -68,12 +66,11 @@ where
             url.query_pairs_mut()
                 .append_pair("symbol", &coins.to_string());
         }
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::GET).await;
-        log::info!("Get All Orders Header: {:#?}", header);
         extractor::extract_orders(body).await
     }
 
@@ -91,12 +88,11 @@ where
             url.query_pairs_mut()
                 .append_pair("wait", &format!("{}", wait));
         }
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::GET).await;
-        log::info!("Get Order By Id Header: {:#?}", header);
         extractor::extract_order(body).await
     }
 
@@ -110,7 +106,6 @@ where
             .push(Self::ORDER);
         let body = serde_json::to_vec(&order.to_model())
             .expect("Failed to serialize CreateMarketOrder");
-        log::info!("JSON: {:#?}", String::from_utf8(body.clone()));
         let (header, response_body) = process(
             &self.client,
             &self.auth_context,
@@ -118,7 +113,6 @@ where
             hyper::Method::POST,
             body).await;
         if header.status == hyper::StatusCode::OK{
-            log::info!("Create Order Response Header: {:#?}", header);
             extractor::extract_order(response_body).await
         } else {
             let error = extractor::extract_error(response_body).await;
@@ -137,7 +131,6 @@ where
             .push(Self::ORDER);
         let body = serde_json::to_vec(&order.to_model())
             .expect("Failed to serialize CreateLimitOrder");
-        log::info!("JSON: {:#?}", String::from_utf8(body.clone()));
         let (header, response_body) = process(
             &self.client,
             &self.auth_context,
@@ -145,7 +138,6 @@ where
             hyper::Method::POST,
             body).await;
         if header.status == hyper::StatusCode::OK{
-            log::info!("Create Order Response Header: {:#?}", header);
             extractor::extract_order(response_body).await
         } else {
             let error = extractor::extract_error(response_body).await;
@@ -166,12 +158,11 @@ where
             url.query_pairs_mut()
                 .append_pair("symbol", &symbol.to_string());
         }
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::DELETE).await;
-        log::info!("Cancell All Orders Header: {:#?}", header);
         extractor::extract_orders(body).await
     }
     
@@ -184,12 +175,11 @@ where
             .expect(BAD_URL)
             .push(Self::ORDER)
             .push(id);
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::DELETE).await;
-        log::info!("Cancell Order By Id Header: {:#?}", header);
         extractor::extract_order(body).await
     }
 
@@ -203,12 +193,11 @@ where
             .push(Self::TRADING)
             .push(Self::FEE)
             .push(&symbol.to_string());
-        let (header, body) = process_with_empty_body(
+        let (_header, body) = process_with_empty_body(
             &self.client,
             &self.auth_context,
             url,
             hyper::Method::GET).await;
-        log::info!("Cancell All Orders Header: {:#?}", header);
         extractor::extract_trading_commission(body).await
     }
 }

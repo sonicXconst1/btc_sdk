@@ -37,7 +37,6 @@ where
             .body(hyper::Body::empty())
             .expect("Failed to build request!");
         let response = self.client.request(request).await.unwrap();
-        log::info!("Get all symbols: {:#?}", response);
         let body = response.into_body();
         extractor::extract_currencies(body).await
     }
@@ -55,7 +54,6 @@ where
             .body(hyper::Body::empty())
             .expect("Failed to build request!");
         let response = self.client.request(request).await.unwrap();
-        log::info!("Get all symbols: {:#?}", response);
         let body = response.into_body();
         extractor::extract_symbols(body).await
     }
@@ -95,8 +93,7 @@ where
             .method(http::Method::GET)
             .body(hyper::Body::empty())
             .expect("Failed to build request!");
-        let (header, body) = self.client.request(request).await.unwrap().into_parts();
-        log::info!("Header: {:#?}", header);
+        let (_header, body) = self.client.request(request).await.unwrap().into_parts();
         extractor::extract_orderbook(body).await
     }
 
@@ -125,8 +122,7 @@ where
             .method(http::Method::GET)
             .body(hyper::Body::empty())
             .expect("Failed to build request!");
-        let (header, body) = self.client.request(request).await.unwrap().into_parts();
-        log::info!("Header: {:#?}", header);
+        let (_header, body) = self.client.request(request).await.unwrap().into_parts();
         extractor::extract_orderbook_exact_symbol(body).await
     }
 }
