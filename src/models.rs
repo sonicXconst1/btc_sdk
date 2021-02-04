@@ -48,7 +48,7 @@ pub struct Order {
     #[serde(rename="createdAt")]
     pub created_at: String,
     #[serde(rename="udpatedAt")]
-    pub updated_at: String,
+    pub updated_at: Option<String>,
     #[serde(rename="postOnly")]
     pub post_only: bool,
     #[serde(rename="expireTime")]
