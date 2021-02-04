@@ -59,7 +59,7 @@ where
         extractor::extract_balance(body).await
     }
 
-    pub async fn get_all_orders(&self, coins: Option<coin::Symbol>) -> Option<models::Orders> {
+    pub async fn get_active_orders(&self, coins: Option<coin::Symbol>) -> Option<models::Orders> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut().expect(BAD_URL).push(Self::ORDER);
         if let Some(coins) = coins {
