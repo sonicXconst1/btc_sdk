@@ -260,8 +260,8 @@ pub mod typed {
             match orderbook.get(&symbol_as_string) {
                 Some(page) => {
                     let price_iterator = match side {
-                        crate::base::Side::Buy => page.ask.iter(),
-                        crate::base::Side::Sell => page.bid.iter(),
+                        crate::base::Side::Buy => page.bid.iter(),
+                        crate::base::Side::Sell => page.ask.iter(),
                     };
                     let prices = price_iterator
                         .map(|price| Price::from(price))
