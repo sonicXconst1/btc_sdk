@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Side {
     Sell,
     Buy,
@@ -13,7 +13,7 @@ impl Side {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum Type {
     Limit,
     Market,
