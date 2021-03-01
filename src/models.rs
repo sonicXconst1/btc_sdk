@@ -42,7 +42,7 @@ pub struct Order {
     #[serde(rename="timeInForce")]
     pub time_in_force: String,
     pub quantity: String,
-    pub price: String,
+    pub price: Option<String>,
     #[serde(rename="cumQuantity")]
     pub cim_quantity: String,
     #[serde(rename="createdAt")]
