@@ -1,4 +1,4 @@
-#[derive(serde::Serialize, serde::Deserialize, PartialEq, Clone, Debug)]
+#[derive(serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash, Clone, Debug)]
 #[serde(untagged)]
 pub enum Coin {
     TON,

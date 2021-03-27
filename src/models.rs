@@ -163,7 +163,6 @@ pub mod typed {
     use super::super::base;
     use super::super::coin;
 
-
     pub struct Currency {
         pub currency: String,
         pub available: f64,
@@ -178,6 +177,9 @@ pub mod typed {
                 reserved: f64::from_str(&from.reserved).unwrap(),
             }
         }
+    }
+
+    pub struct Order {
     }
 
     pub struct CreateMarketOrder {
