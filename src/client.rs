@@ -31,7 +31,7 @@ where
         }
     }
 
-    pub async fn get_account_balance(&self) -> Option<models::Balance> {
+    pub async fn get_account_balance(&self) -> Result<models::Balance, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -41,11 +41,14 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET).await;
-        extractor::extract_balance(body).await
+            hyper::Method::GET).await?;
+        match extractor::extract_balance(body).await {
+            Some(balance) => Ok(balance),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
-    pub async fn get_trading_balance(&self) -> Option<models::Balance> {
+    pub async fn get_trading_balance(&self) -> Result<models::Balance, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -55,11 +58,17 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET).await;
-        extractor::extract_balance(body).await
+            hyper::Method::GET).await?;
+        match extractor::extract_balance(body).await {
+            Some(balance) => Ok(balance),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
-    pub async fn get_active_orders(&self, coins: Option<coin::Symbol>) -> Option<models::Orders> {
+    pub async fn get_active_orders(
+        &self,
+        coins: Option<coin::Symbol>
+    ) -> Result<models::Orders, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut().expect(BAD_URL).push(Self::ORDER);
         if let Some(coins) = coins {
@@ -70,15 +79,18 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET).await;
-        extractor::extract_orders(body).await
+            hyper::Method::GET).await?;
+        match extractor::extract_orders(body).await {
+            Some(orders) => Ok(orders),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
     pub async fn get_order_by_id(
         &self,
         id: &str,
         wait: Option<u64>,
-    ) -> Option<models::Order> {
+    ) -> Result<models::Order, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -92,14 +104,17 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET).await;
-        extractor::extract_order(body).await
+            hyper::Method::GET).await?;
+        match extractor::extract_order(body).await {
+            Some(order) => Ok(order),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
     pub async fn create_market_order(
         &self,
         order: models::typed::CreateMarketOrder,
-    ) -> Option<models::Order> {
+    ) -> Result<models::Order, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -111,20 +126,22 @@ where
             &self.auth_context,
             url,
             hyper::Method::POST,
-            body).await;
+            body).await?;
         if header.status == hyper::StatusCode::OK{
-            extractor::extract_order(response_body).await
+            match extractor::extract_order(response_body).await {
+                Some(order) => Ok(order),
+                None => Err("Deserialization error".to_owned()),
+            }
         } else {
             let error = extractor::extract_error(response_body).await;
-            log::error!("Error on creating order: {:#?}", error);
-            None
+            Err(format!("Error on creating order: {:#?}", error))
         }
     }
 
     pub async fn create_limit_order(
         &self,
         order: models::typed::CreateLimitOrder,
-    ) -> Option<models::Order> {
+    ) -> Result<models::Order, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -136,20 +153,22 @@ where
             &self.auth_context,
             url,
             hyper::Method::POST,
-            body).await;
+            body).await?;
         if header.status == hyper::StatusCode::OK{
-            extractor::extract_order(response_body).await
+            match extractor::extract_order(response_body).await {
+                Some(order) => Ok(order),
+                None => Err("Deserialization error".to_owned()),
+            }
         } else {
             let error = extractor::extract_error(response_body).await;
-            log::error!("Error on creating order: {:#?}", error);
-            None
+            Err(format!("Error on creating order: {:#?}", error))
         }
     }
 
     pub async fn cancel_all_orders(
         &self,
         symbol: Option<coin::Symbol>,
-    ) -> Option<models::Orders> {
+    ) -> Result<models::Orders, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -162,14 +181,17 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::DELETE).await;
-        extractor::extract_orders(body).await
+            hyper::Method::DELETE).await?;
+        match extractor::extract_orders(body).await {
+            Some(orders) => Ok(orders),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
     
     pub async fn cancel_order_by_id(
         &self,
         id: &str
-    ) -> Option<models::Order> {
+    ) -> Result<models::Order, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -179,14 +201,17 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::DELETE).await;
-        extractor::extract_order(body).await
+            hyper::Method::DELETE).await?;
+       match extractor::extract_order(body).await {
+            Some(order) => Ok(order),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
     pub async fn get_trading_commission(
         &self,
         symbol: coin::Symbol,
-    ) -> Option<models::TradingCommission> {
+    ) -> Result<models::TradingCommission, String> {
         let mut url = self.auth_context.base_url.clone();
         url.path_segments_mut()
             .expect(BAD_URL)
@@ -197,8 +222,11 @@ where
             &self.client,
             &self.auth_context,
             url,
-            hyper::Method::GET).await;
-        extractor::extract_trading_commission(body).await
+            hyper::Method::GET).await?;
+        match extractor::extract_trading_commission(body).await {
+            Some(comission) => Ok(comission),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 }
 
@@ -216,7 +244,7 @@ async fn process_with_empty_body<TConnector>(
     auth_context: &context::AuthContext,
     url: url::Url,
     method: hyper::Method,
-) -> (http::response::Parts, hyper::Body)
+) -> Result<(http::response::Parts, hyper::Body), String>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
@@ -227,14 +255,19 @@ where
     let path_with_query = &url[url::Position::BeforePath..];
     let message = get_message(method.clone(), &timestamp, path_with_query, &body);
     let jwt = auth_context.sign(message, timestamp);
-    let request = hyper::Request::builder()
+    let request = match hyper::Request::builder()
         .header("Accept", "application/json")
         .header("Authorization", jwt)
         .uri(url.to_string())
         .method(method)
-        .body(hyper::Body::empty())
-        .expect("Failed to build request!");
-    client.request(request).await.unwrap().into_parts()
+        .body(hyper::Body::empty()) {
+        Ok(request) => request,
+        Err(error) => return Err(format!("Failed create request: {:#?}", error)),
+    };
+    match client.request(request).await {
+        Ok(response) => Ok(response.into_parts()),
+        Err(error) => Err(format!("Failed to craete request: {:#?}", error)),
+    }
 }
 
 async fn process<TConnector>(
@@ -243,7 +276,7 @@ async fn process<TConnector>(
     url: url::Url,
     method: hyper::Method,
     body_bytes: Vec<u8>,
-) -> (http::response::Parts, hyper::Body)
+) -> Result<(http::response::Parts, hyper::Body), String>
 where
     TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
 {
@@ -257,12 +290,17 @@ where
         path_with_query,
         &body);
     let jwt = auth_context.sign(message, timestamp);
-    let request = hyper::Request::builder()
+    let request = match hyper::Request::builder()
         .header("Content-Type", "application/json")
         .header("Authorization", jwt)
         .uri(url.to_string())
         .method(method)
-        .body(hyper::Body::from(body))
-        .expect("Failed to build request!");
-    client.request(request).await.unwrap().into_parts()
+        .body(hyper::Body::from(body)) {
+        Ok(request) => request,
+        Err(error) => return Err(format!("Failed create request: {:#?}", error)),
+    };
+    match client.request(request).await {
+        Ok(response) => Ok(response.into_parts()),
+        Err(error) => Err(format!("Failed to craete request: {:#?}", error)),
+    }
 }

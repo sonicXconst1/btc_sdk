@@ -24,45 +24,37 @@ where
         PublicClient { client, base_url }
     }
 
-    pub async fn get_all_currencies(&self) -> Option<Vec<models::PublicCurrency>> {
+    pub async fn get_all_currencies(&self) -> Result<Vec<models::PublicCurrency>, String> {
         let mut url = self.base_url.clone();
         url.path_segments_mut()
             .expect(client::BAD_URL)
             .push(Self::PUBLIC)
             .push(Self::CURRENCY);
-        let request = hyper::Request::builder()
-            .header("Accept", "application/json")
-            .uri(url.to_string())
-            .method(http::Method::GET)
-            .body(hyper::Body::empty())
-            .expect("Failed to build request!");
-        let response = self.client.request(request).await.unwrap();
-        let body = response.into_body();
-        extractor::extract_currencies(body).await
+        let (_header, body) = default_request(&self.client, url).await?;
+        match extractor::extract_currencies(body).await {
+            Some(currencies) => Ok(currencies),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
-    pub async fn get_all_symbols(&self) -> Option<models::Symbols> {
+    pub async fn get_all_symbols(&self) -> Result<models::Symbols, String> {
         let mut url = self.base_url.clone();
         url.path_segments_mut()
             .expect(client::BAD_URL)
             .push(Self::PUBLIC)
             .push(Self::SYMBOL);
-        let request = hyper::Request::builder()
-            .header("Accept", "application/json")
-            .uri(url.to_string())
-            .method(http::Method::GET)
-            .body(hyper::Body::empty())
-            .expect("Failed to build request!");
-        let response = self.client.request(request).await.unwrap();
-        let body = response.into_body();
-        extractor::extract_symbols(body).await
+        let (_header, body) = default_request(&self.client, url).await?;
+        match extractor::extract_symbols(body).await {
+            Some(symbols) => Ok(symbols),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
     pub async fn get_orderbook(
         &self,
         limit: Option<u64>,
         symbols: Option<Vec<coin::Symbol>>,
-    ) -> Option<models::OrderBook> {
+    ) -> Result<models::OrderBook, String> {
         let mut url = self.base_url.clone();
         url.path_segments_mut()
             .expect(client::BAD_URL)
@@ -87,14 +79,11 @@ where
             }
             url.query_pairs_mut().append_pair("symbols", &symbols);
         }
-        let request = hyper::Request::builder()
-            .header("Accept", "application/json")
-            .uri(url.to_string())
-            .method(http::Method::GET)
-            .body(hyper::Body::empty())
-            .expect("Failed to build request!");
-        let (_header, body) = self.client.request(request).await.unwrap().into_parts();
-        extractor::extract_orderbook(body).await
+        let (_header, body) = default_request(&self.client, url).await?;
+        match extractor::extract_orderbook(body).await {
+            Some(orderbook) => Ok(orderbook),
+            None => Err("Deserialization error".to_owned()),
+        }
     }
 
     pub async fn get_symbol_from_orderbook(
@@ -102,7 +91,7 @@ where
         symbol: coin::Symbol,
         limit: Option<u64>,
         volume: Option<f64>,
-    ) -> Option<models::OrderbookExactSymbol> {
+    ) -> Result<models::OrderbookExactSymbol, String> {
         let mut url = self.base_url.clone();
         url.path_segments_mut()
             .expect(client::BAD_URL)
@@ -116,13 +105,32 @@ where
             url.query_pairs_mut()
                 .append_pair("limit", &format!("{}", limit));
         }
-        let request = hyper::Request::builder()
-            .header("Accept", "application/json")
-            .uri(url.to_string())
-            .method(http::Method::GET)
-            .body(hyper::Body::empty())
-            .expect("Failed to build request!");
-        let (_header, body) = self.client.request(request).await.unwrap().into_parts();
-        extractor::extract_orderbook_exact_symbol(body).await
+        let (_header, body) = default_request(&self.client, url).await?;
+        match extractor::extract_orderbook_exact_symbol(body).await {
+            Some(orderbook) => Ok(orderbook),
+            None => Err("Deserialization error".to_owned()),
+        }
+    }
+}
+
+async fn default_request<TConnector>(
+    client: &hyper::Client<TConnector>,
+    url: url::Url,
+) -> Result<(http::response::Parts, hyper::Body), String>
+where
+    TConnector: hyper::client::connect::Connect + Send + Sync + Clone + 'static,
+{
+    let request = match hyper::Request::builder()
+        .header("Accept", "application/json")
+        .uri(url.to_string())
+        .method(http::Method::GET)
+        .body(hyper::Body::empty())
+    {
+        Ok(request) => request,
+        Err(error) => return Err(format!("Request failed: {:#?}", error)),
+    };
+    match client.request(request).await {
+        Ok(response) => Ok(response.into_parts()),
+        Err(error) => Err(format!("Failed to craete request: {:#?}", error)),
     }
 }
