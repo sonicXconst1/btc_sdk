@@ -21,7 +21,7 @@ impl AuthContext {
     }
 
     pub fn sign(&self, message: String, timestamp: String) -> String {
-        let mut signature = hmac::Hmac::<sha2::Sha256>::new_varkey(
+        let mut signature = hmac::Hmac::<sha2::Sha256>::new_from_slice(
             self.private_key.as_bytes())
             .expect("HMAC can take key of any size");
         signature.update(message.as_bytes());
